@@ -6,14 +6,14 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 
 from app.schemas import ActionResult, EntryPayload, PageResult
-from app.services.dangerous import DangerousService
+from app.services.dangerous import STATUS_ORDER, DangerousService
 
 router = APIRouter(prefix="/api/dangerous", tags=["危险品申报"])
 
 service = DangerousService()
 
 LIST_FIELDS = ["申报编号", "箱号", "危品类别", "联合国编号", "包装等级", "积载要求", "隔离要求", "申报状态"]
-STATUSES = ["待申报", "已申报", "海关审核", "已放行"]
+STATUSES = STATUS_ORDER
 
 
 @router.get("", response_model=PageResult[dict])
@@ -52,10 +52,10 @@ def create_entry(payload: EntryPayload) -> ActionResult:
 def run_action(entry_id: int, payload: EntryPayload) -> ActionResult:
     """对单条危险品执行提交申报、审核通过、放行确认；不允许的动作会被拦下并说明原因。"""
     action = str(payload.values.get("action") or "").strip()
-    entry, message = service.run_action(entry_id, action)
+    entry, message, ok = service.run_action(entry_id, action)
     if entry is None:
         return ActionResult(ok=False, message=message)
-    return ActionResult(ok=True, message=message, entry=entry)
+    return ActionResult(ok=ok, message=message, entry=entry)
 
 
 @router.get("/export")
