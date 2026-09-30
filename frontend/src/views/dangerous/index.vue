@@ -99,10 +99,14 @@ async function runAction(action: string, row: Row) {
   try {
     const response = await request(`${ENDPOINT}/${row.id}/actions`, {
       method: 'POST',
-      body: JSON.stringify({ action }),
+      body: JSON.stringify({ values: { action } }),
     })
     if (!response.ok) {
       throw new Error('危险品申报动作未生效，请稍后重试')
+    }
+    const result = await response.json()
+    if (!result.ok) {
+      throw new Error(result.message || '危险品申报动作未生效')
     }
     await reload()
   } catch (error) {

@@ -18,6 +18,12 @@ class Store:
     def module_names(self) -> list[str]:
         return sorted(self._tables)
 
+    def reset(self) -> None:
+        """恢复示例数据；供测试在一个进程内获得干净的内存仓库。"""
+        self._tables = {
+            name: [dict(row) for row in rows] for name, rows in SEED_ROWS.items()
+        }
+
     def rows(self, module: str) -> list[dict[str, Any]]:
         return self._tables.setdefault(module, [])
 
